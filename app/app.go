@@ -29,11 +29,12 @@ func Start() {
 
 	//define handlers
 	ah := AuthHandler{
-		service: service.NewDefaultAuthService(domain.NewAuthRepositoryDB(dbClient)),
+		service: service.NewDefaultAuthService(domain.NewAuthRepositoryDB(dbClient), domain.GetRolePermissions()),
 	}
 
 	// define routes
-	router.HandleFunc("/login", ah.Login).Methods(http.MethodPost)
+	router.HandleFunc("/auth/login", ah.Login).Methods(http.MethodPost)
+	router.HandleFunc("/auth/verify", ah.Verify).Methods(http.MethodGet)
 
 	// starting server
 	address := os.Getenv("SERVER_ADDRESS")
