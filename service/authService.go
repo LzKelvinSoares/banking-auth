@@ -11,7 +11,7 @@ import (
 )
 
 type AuthService interface {
-	Login(dto.LoginRequest) (*string, *errs.AppError)
+	Login(dto.LoginRequest) (*dto.LoginResponse, *errs.AppError)
 	Verify(map[string]string) *errs.AppError
 }
 
@@ -36,18 +36,28 @@ func (c authTokenClaims) IsRequestVerifiedWithTokenClaims(urlParams map[string]s
 	return true
 }
 
-func (s DefaultAuthService) Login(req dto.LoginRequest) (*string, *errs.AppError) {
-	login, err := s.repo.FindBy(req.Username, req.Password)
-	if err != nil {
-		return nil, err
+func (s DefaultAuthService) Login(req dto.LoginRequest) (*dto.LoginResponse, *errs.AppError) {
+	var appErr *errs.AppError
+	var login *domain.Login
+	if login, appErr = s.repo.FindBy(req.Username, req.Password); appErr != nil {
+		return nil, appErr
 	}
 
-	token, tokErr := login.GenerateToken()
-	if tokErr != nil {
-		return nil, tokErr
+	claims := login.ClaimsForAccessToken()
+
+	authToken := domain.NewAuthToken(claims)
+	var accessToken, refreshToken string
+	if accessToken, appErr = authToken.NewAccessToken(); appErr != nil {
+		return nil, appErr
 	}
 
-	return &token, nil
+	if refreshToken, appErr = s.repo.GenerateAndSaveRefreshTokenToStore(authToken); appErr != nil {
+		return nil, appErr
+	}
+	return &dto.LoginResponse{
+		AccessToken:  accessToken,
+		RefreshToken: refreshToken,
+	}, nil
 }
 
 func (s DefaultAuthService) Verify(urlParams map[string]string) *errs.AppError {
@@ -57,7 +67,7 @@ func (s DefaultAuthService) Verify(urlParams map[string]string) *errs.AppError {
 	}
 
 	if jwtToken.Valid {
-		claims, ok := jwtToken.Claims.(*domain.Claims)
+		claims, ok := jwtToken.Claims.(*domain.AccessTokenClaims)
 		if !ok {
 			return errs.NewAuthorizationError("invalid token claims")
 		}
@@ -79,7 +89,7 @@ func (s DefaultAuthService) Verify(urlParams map[string]string) *errs.AppError {
 }
 
 func jwtTokenFromString(tokenString string) (*jwt.Token, *errs.AppError) {
-	token, err := jwt.ParseWithClaims(tokenString, &domain.Claims{}, func(token *jwt.Token) (interface{}, error) {
+	token, err := jwt.ParseWithClaims(tokenString, &domain.AccessTokenClaims{}, func(token *jwt.Token) (interface{}, error) {
 		return []byte(domain.HMAC_SAMPLE_SECRET), nil
 	})
 

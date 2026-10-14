@@ -10,6 +10,7 @@ import (
 
 type AuthRepository interface {
 	FindBy(username, password string) (*Login, *errs.AppError)
+	GenerateAndSaveRefreshTokenToStore(authToken AuthToken) (string, *errs.AppError)
 }
 
 type AuthRepositoryDB struct {
@@ -44,6 +45,25 @@ func (d AuthRepositoryDB) FindBy(username, password string) (*Login, *errs.AppEr
 	}
 
 	return &login, nil
+}
+
+func (a AuthRepositoryDB) GenerateAndSaveRefreshTokenToStore(authToken AuthToken) (string, *errs.AppError) {
+	// generate refresh token
+	var appErr *errs.AppError
+	var refreshToken string
+	if refreshToken, appErr = authToken.NewRefreshToken(); appErr != nil {
+		return "", appErr
+	}
+
+	// save it
+	sqlInsert := "insert into refresh_token_store (refresh_token) values (?)"
+	_, err := a.client.Exec(sqlInsert, refreshToken)
+	if err != nil {
+		logger.Error("Unexpected DB error: " + err.Error())
+		return "", errs.NewUnexpectedError("Unexpected DB error")
+	}
+
+	return refreshToken, nil
 }
 
 func NewAuthRepositoryDB(dbClient *sqlx.DB) AuthRepositoryDB {
