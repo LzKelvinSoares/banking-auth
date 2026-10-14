@@ -40,3 +40,16 @@ func NewAuthToken(claims AccessTokenClaims) AuthToken {
 		token: token,
 	}
 }
+
+func NewAccessTokenFromRefreshToken(refreshToken string) (string, *errs.AppError) {
+	token, err := jwt.ParseWithClaims(refreshToken, RefreshTokenClaims{}, func(t *jwt.Token) (interface{}, error) {
+		return []byte(HMAC_SAMPLE_SECRET), nil
+	})
+	if err != nil {
+		return "", errs.NewAuthenticationError("Invalid or Expired Refresh Token")
+	}
+	r := token.Claims.(*RefreshTokenClaims)
+	accessTokenClaims := r.AccessTokenClaims()
+	authToken := NewAuthToken(accessTokenClaims)
+	return authToken.NewAccessToken()
+}

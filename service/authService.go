@@ -13,6 +13,7 @@ import (
 type AuthService interface {
 	Login(dto.LoginRequest) (*dto.LoginResponse, *errs.AppError)
 	Verify(map[string]string) *errs.AppError
+	Refresh(refreshTokenRequest dto.RefreshTokenRequest) (*dto.LoginResponse, *errs.AppError)
 }
 
 type DefaultAuthService struct {
@@ -86,6 +87,25 @@ func (s DefaultAuthService) Verify(urlParams map[string]string) *errs.AppError {
 	} else {
 		return errs.NewAuthorizationError("Invalid Token")
 	}
+}
+
+func (a DefaultAuthService) Refresh(request dto.RefreshTokenRequest) (*dto.LoginResponse, *errs.AppError) {
+	if err := request.AccessTokenValid(); err != nil {
+		return nil, errs.NewAuthenticationError("Invalid Token")
+	}
+
+	var appError *errs.AppError
+	if appError = a.repo.RefreshTokenExist(request.RefreshToken); appError != nil {
+		return nil, appError
+	}
+
+	var access_token string
+	if access_token, appError = domain.NewAccessTokenFromRefreshToken(request.RefreshToken); appError != nil {
+		return nil, appError
+	}
+	return &dto.LoginResponse{
+		AccessToken: access_token,
+	}, nil
 }
 
 func jwtTokenFromString(tokenString string) (*jwt.Token, *errs.AppError) {
