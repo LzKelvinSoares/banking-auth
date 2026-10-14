@@ -1,6 +1,12 @@
 filippo.io/edwards25519 v1.1.0/go.mod h1:BxyFTGdWcka3PhytdK4V28tE5sGfRvvvRV7EaN4VDT4=
 filippo.io/edwards25519 v1.2.0 h1:crnVqOiS4jqYleHd9vaKZ+HKtHfllngJIiOpNpoJsjo=
 filippo.io/edwards25519 v1.2.0/go.mod h1:xzAOLCNug/yB62zG1bQ8uziwrIqIuxhctzJT18Q77mc=
+github.com/LzKelvinSoares/lzk-go-lib v1.0.2 h1:oy0rWMNk/HsJkZVRUKBQfbhbLMpOjJa5G4NrjXA5DR4=
+github.com/LzKelvinSoares/lzk-go-lib v1.0.2/go.mod h1:RlByZdCe7lZSQPmNmN6z3TtjAvgAsE+5zwLi/uTWhD0=
+github.com/LzKelvinSoares/lzk-go-lib v1.0.3 h1:BSXA2Cs7sPnLqkrQ7XLTQeESdX12qIYxIaDxaFJvcKA=
+github.com/LzKelvinSoares/lzk-go-lib v1.0.3/go.mod h1:RlByZdCe7lZSQPmNmN6z3TtjAvgAsE+5zwLi/uTWhD0=
+github.com/LzKelvinSoares/lzk-go-lib v1.0.4 h1:PqDUVUuPFQM2ccwCgwyxvraeq/Y+jdbZk1/9lI5OMeA=
+github.com/LzKelvinSoares/lzk-go-lib v1.0.4/go.mod h1:RlByZdCe7lZSQPmNmN6z3TtjAvgAsE+5zwLi/uTWhD0=
 github.com/go-sql-driver/mysql v1.8.1/go.mod h1:wEBSXgmK//2ZFJyE+qWnIsVGmvmEKlqwuVSjsCm7DZg=
 github.com/go-sql-driver/mysql v1.10.1 h1:arlSnNLq6a5yxGxV7qg9lF4j0C+KwD6NbQyKr9QL6ME=
 github.com/go-sql-driver/mysql v1.10.1/go.mod h1:M+cqaI7+xxXGG9swrdeUIoPG3Y3KCkF0pZej+SK+nWk=

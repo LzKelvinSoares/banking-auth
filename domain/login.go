@@ -2,11 +2,11 @@ package domain
 
 import (
 	"database/sql"
-	"errors"
 	"log"
 	"strings"
 	"time"
 
+	"github.com/LzKelvinSoares/lzk-go-lib/errs"
 	"github.com/golang-jwt/jwt/v5"
 )
 
@@ -20,8 +20,8 @@ type Login struct {
 	Role       string         `db:"role"`
 }
 
-func (l Login) GenerateToken() (string, error) {
-	var claims jwt.MapClaims
+func (l Login) GenerateToken() (string, *errs.AppError) {
+	var claims Claims
 	if l.Accounts.Valid && l.CustomerId.Valid {
 		claims = l.ClaimsForUser()
 	} else {
@@ -32,7 +32,7 @@ func (l Login) GenerateToken() (string, error) {
 	signedTokenAsString, err := token.SignedString([]byte(HMAC_SAMPLE_SECRET))
 	if err != nil {
 		log.Println("Failed while signing token: " + err.Error())
-		return "", errors.New("cannot generate token")
+		return "", errs.NewUnexpectedError("cannot generate token")
 	}
 
 	return signedTokenAsString, nil
@@ -40,41 +40,27 @@ func (l Login) GenerateToken() (string, error) {
 
 func (l Login) ClaimsForAccessToken() Claims {
 	if l.Accounts.Valid && l.CustomerId.Valid {
-		accounts := []string{}
-		if l.Accounts.String != "" {
-			accounts = strings.Split(l.Accounts.String, ",")
-		}
-		return Claims{
-			CustomerId: l.CustomerId.String,
-			Accounts:   accounts,
-			Username:   l.Username,
-			Expiry:     time.Now().Add(TOKEN_DURATION).Unix(),
-			Role:       l.Role,
-		}
+		return l.ClaimsForUser()
 	}
 
+	return l.ClaimsForAdmin()
+}
+
+func (l Login) ClaimsForUser() Claims {
+	accounts := strings.Split(l.Accounts.String, ",")
 	return Claims{
+		CustomerId: l.CustomerId.String,
+		Role:       l.Role,
+		Username:   l.Username,
+		Accounts:   accounts,
+		Expiry:     time.Now().Add(TOKEN_DURATION).Unix(),
+	}
+}
+
+func (l Login) ClaimsForAdmin() Claims {
+	return Claims{
+		Role:     l.Role,
 		Username: l.Username,
 		Expiry:   time.Now().Add(TOKEN_DURATION).Unix(),
-		Role:     l.Role,
-	}
-}
-
-func (l Login) ClaimsForUser() jwt.MapClaims {
-	accounts := strings.Split(l.Accounts.String, ",")
-	return jwt.MapClaims{
-		"customer_id": l.CustomerId.String,
-		"role":        l.Role,
-		"username":    l.Username,
-		"accounts":    accounts,
-		"exp":         time.Now().Add(TOKEN_DURATION).Unix(),
-	}
-}
-
-func (l Login) ClaimsForAdmin() jwt.MapClaims {
-	return jwt.MapClaims{
-		"role":     l.Role,
-		"username": l.Username,
-		"exp":      time.Now().Add(TOKEN_DURATION).Unix(),
 	}
 }

@@ -1,22 +1,22 @@
 package domain
 
 import (
+	"banking-auth/logger"
 	"database/sql"
-	"errors"
-	"log"
 
+	"github.com/LzKelvinSoares/lzk-go-lib/errs"
 	"github.com/jmoiron/sqlx"
 )
 
 type AuthRepository interface {
-	FindBy(username, password string) (*Login, error)
+	FindBy(username, password string) (*Login, *errs.AppError)
 }
 
 type AuthRepositoryDB struct {
 	client *sqlx.DB
 }
 
-func (d AuthRepositoryDB) FindBy(username, password string) (*Login, error) {
+func (d AuthRepositoryDB) FindBy(username, password string) (*Login, *errs.AppError) {
 	var login Login
 	sqlVerify := `SELECT 
 					u.username,
@@ -35,11 +35,11 @@ func (d AuthRepositoryDB) FindBy(username, password string) (*Login, error) {
 	err := d.client.Get(&login, sqlVerify, username, password)
 	if err != nil {
 		if err == sql.ErrNoRows {
-			return nil, errors.New("invalid credentials")
+			return nil, errs.NewAuthenticationError("invalid credentials")
 
 		} else {
-			log.Println("Error while verifying login from DB: " + err.Error())
-			return nil, errors.New("Unexpected DB error")
+			logger.Error("Error while verifying login from DB: " + err.Error())
+			return nil, errs.NewUnexpectedError("Unexpected DB error")
 		}
 	}
 

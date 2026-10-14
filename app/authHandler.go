@@ -2,10 +2,9 @@ package app
 
 import (
 	"banking-auth/dto"
+	"banking-auth/logger"
 	"banking-auth/service"
 	"encoding/json"
-	"fmt"
-	"log"
 	"net/http"
 )
 
@@ -16,15 +15,14 @@ type AuthHandler struct {
 func (ah AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
 	var loginRequest dto.LoginRequest
 	if err := json.NewDecoder(r.Body).Decode(&loginRequest); err != nil {
-		log.Println("Error while decoding login request: " + err.Error())
+		logger.Error("Error while decoding login request: " + err.Error())
 		w.WriteHeader(http.StatusBadRequest)
 	} else {
 		token, logErr := ah.service.Login(loginRequest)
 		if logErr != nil {
-			w.WriteHeader(http.StatusUnauthorized)
-			fmt.Fprint(w, logErr.Error())
+			writeResponse(w, logErr.Code, logErr.AsMessage())
 		} else {
-			fmt.Fprint(w, *token)
+			writeResponse(w, http.StatusOK, token)
 		}
 	}
 }
@@ -37,18 +35,14 @@ func (ah AuthHandler) Verify(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if urlParams["token"] != "" {
-		isAuthorized, appErr := ah.service.Verify(urlParams)
+		appErr := ah.service.Verify(urlParams)
 		if appErr != nil {
-			writeResponse(w, http.StatusForbidden, notAuthorizedResponse(appErr.Error()))
+			writeResponse(w, appErr.Code, appErr.AsMessage())
 		} else {
-			if isAuthorized {
-				writeResponse(w, http.StatusOK, authorizedResponse())
-			} else {
-				writeResponse(w, http.StatusForbidden, notAuthorizedResponse("Missing token"))
-			}
+			writeResponse(w, http.StatusOK, authorizedResponse())
 		}
 	} else {
-		writeResponse(w, http.StatusForbidden, "Missing token")
+		writeResponse(w, http.StatusForbidden, notAuthorizedResponse("Missing token"))
 	}
 }
 
