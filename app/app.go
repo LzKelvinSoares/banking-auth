@@ -7,25 +7,16 @@ import (
 	"fmt"
 	"log"
 	"net/http"
-	"os"
 	"time"
 
+	"github.com/LzKelvinSoares/lzk-go-lib/environment"
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/gorilla/mux"
 	"github.com/jmoiron/sqlx"
-	"github.com/joho/godotenv"
 )
 
-func sanityCheck() {
-	godotenv.Load()
-	if os.Getenv("SERVER_ADDRESS") == "" ||
-		os.Getenv("SERVER_PORT") == "" {
-		log.Fatal("Environment variables not defined!")
-	}
-}
-
 func Start() {
-	sanityCheck()
+	serverVariables := environment.GetServerVariables()
 
 	router := mux.NewRouter()
 	dbClient := getDBClient()
@@ -41,20 +32,17 @@ func Start() {
 	router.HandleFunc(constants.REFRESH, ah.Refresh).Methods(http.MethodPost)
 
 	// starting server
-	address := os.Getenv("SERVER_ADDRESS")
-	port := os.Getenv("SERVER_PORT")
-	log.Fatal(http.ListenAndServe(fmt.Sprintf("%s:%s", address, port), router))
+	log.Fatal(http.ListenAndServe(fmt.Sprintf("%s:%s", serverVariables.Address, serverVariables.Port), router))
 
 }
 
 func getDBClient() *sqlx.DB {
-	dbVariables := constants.GetDBVariables()
+	dbVariables := environment.GetDBVariables()
 
 	client, err := sqlx.Open("mysql", dbVariables.GetDataSource())
 	if err != nil {
 		panic(err)
 	}
-	// See "Important settings" section.
 	client.SetConnMaxLifetime(time.Minute * 3)
 	client.SetMaxOpenConns(10)
 	client.SetMaxIdleConns(10)
