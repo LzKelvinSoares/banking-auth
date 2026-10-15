@@ -9,6 +9,8 @@ github.com/LzKelvinSoares/lzk-go-lib v1.0.4 h1:PqDUVUuPFQM2ccwCgwyxvraeq/Y+jdbZk
 github.com/LzKelvinSoares/lzk-go-lib v1.0.4/go.mod h1:RlByZdCe7lZSQPmNmN6z3TtjAvgAsE+5zwLi/uTWhD0=
 github.com/LzKelvinSoares/lzk-go-lib v1.0.5 h1:Xdl9rk7E+lrbW7RsQdigk98bRCEsaVuBjlYIiJP7hzQ=
 github.com/LzKelvinSoares/lzk-go-lib v1.0.5/go.mod h1:rQH9G+F4fGkElxhD6La4QR4/P9wPsDChbjRz9ZA+700=
+github.com/LzKelvinSoares/lzk-go-lib v1.0.6 h1:mDq1fPEc6De0w2l/wpVuliDp3U8X0ju6TF7S4lXVvyI=
+github.com/LzKelvinSoares/lzk-go-lib v1.0.6/go.mod h1:rQH9G+F4fGkElxhD6La4QR4/P9wPsDChbjRz9ZA+700=
 github.com/go-sql-driver/mysql v1.8.1/go.mod h1:wEBSXgmK//2ZFJyE+qWnIsVGmvmEKlqwuVSjsCm7DZg=
 github.com/go-sql-driver/mysql v1.10.1 h1:arlSnNLq6a5yxGxV7qg9lF4j0C+KwD6NbQyKr9QL6ME=
 github.com/go-sql-driver/mysql v1.10.1/go.mod h1:M+cqaI7+xxXGG9swrdeUIoPG3Y3KCkF0pZej+SK+nWk=

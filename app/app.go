@@ -4,7 +4,6 @@ import (
 	"banking-auth/constants"
 	"banking-auth/domain"
 	"banking-auth/service"
-	"fmt"
 	"log"
 	"net/http"
 	"time"
@@ -32,7 +31,7 @@ func Start() {
 	router.HandleFunc(constants.REFRESH, ah.Refresh).Methods(http.MethodPost)
 
 	// starting server
-	log.Fatal(http.ListenAndServe(fmt.Sprintf("%s:%s", serverVariables.Address, serverVariables.Port), router))
+	log.Fatal(http.ListenAndServe(serverVariables.GetAddressToServe(), router))
 
 }
 
