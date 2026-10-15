@@ -1,6 +1,7 @@
 package app
 
 import (
+	"banking-auth/constants"
 	"banking-auth/domain"
 	"banking-auth/service"
 	"fmt"
@@ -12,9 +13,11 @@ import (
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/gorilla/mux"
 	"github.com/jmoiron/sqlx"
+	"github.com/joho/godotenv"
 )
 
 func sanityCheck() {
+	godotenv.Load()
 	if os.Getenv("SERVER_ADDRESS") == "" ||
 		os.Getenv("SERVER_PORT") == "" {
 		log.Fatal("Environment variables not defined!")
@@ -33,9 +36,9 @@ func Start() {
 	}
 
 	// define routes
-	router.HandleFunc("/auth/login", ah.Login).Methods(http.MethodPost)
-	router.HandleFunc("/auth/verify", ah.Verify).Methods(http.MethodGet)
-	router.HandleFunc("/auth/refresh", ah.Refresh).Methods(http.MethodPost)
+	router.HandleFunc(constants.LOGIN, ah.Login).Methods(http.MethodPost)
+	router.HandleFunc(constants.VERIFY, ah.Verify).Methods(http.MethodGet)
+	router.HandleFunc(constants.REFRESH, ah.Refresh).Methods(http.MethodPost)
 
 	// starting server
 	address := os.Getenv("SERVER_ADDRESS")
@@ -45,15 +48,9 @@ func Start() {
 }
 
 func getDBClient() *sqlx.DB {
-	// dbUser := os.Getenv("DB_USER")
-	// dbPassword := os.Getenv("DB_PASSWORD")
-	// dbAddress := os.Getenv("DB_ADDRESS")
-	// dbPort := os.Getenv("DB_PORT")
-	// dbName := os.Getenv("DB_NAME")
+	dbVariables := constants.GetDBVariables()
 
-	// dataSource := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s", dbUser, dbPassword, dbAddress, dbPort, dbName)
-	// client, err := sqlx.Open("mysql", dataSource)
-	client, err := sqlx.Open("mysql", "root:password@tcp(localhost:3306)/banking")
+	client, err := sqlx.Open("mysql", dbVariables.GetDataSource())
 	if err != nil {
 		panic(err)
 	}
