@@ -42,7 +42,7 @@ func NewAuthToken(claims AccessTokenClaims) AuthToken {
 }
 
 func NewAccessTokenFromRefreshToken(refreshToken string) (string, *errs.AppError) {
-	token, err := jwt.ParseWithClaims(refreshToken, RefreshTokenClaims{}, func(t *jwt.Token) (interface{}, error) {
+	token, err := jwt.ParseWithClaims(refreshToken, &RefreshTokenClaims{}, func(t *jwt.Token) (interface{}, error) {
 		return []byte(HMAC_SAMPLE_SECRET), nil
 	})
 	if err != nil {
