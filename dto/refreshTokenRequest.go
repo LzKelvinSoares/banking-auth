@@ -2,8 +2,8 @@ package dto
 
 import (
 	"banking-auth/domain"
-	"banking-auth/logger"
 
+	"github.com/LzKelvinSoares/lzk-go-lib/logger"
 	"github.com/golang-jwt/jwt/v5"
 )
 

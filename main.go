@@ -2,7 +2,8 @@ package main
 
 import (
 	"banking-auth/app"
-	"banking-auth/logger"
+
+	"github.com/LzKelvinSoares/lzk-go-lib/logger"
 )
 
 func main() {

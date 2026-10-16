@@ -6,10 +6,10 @@ import (
 	"banking-auth/service"
 	"log"
 	"net/http"
-	"time"
 
+	libConstants "github.com/LzKelvinSoares/lzk-go-lib/constants"
 	"github.com/LzKelvinSoares/lzk-go-lib/environment"
-	_ "github.com/go-sql-driver/mysql"
+	_ "github.com/denisenkom/go-mssqldb"
 	"github.com/gorilla/mux"
 	"github.com/jmoiron/sqlx"
 )
@@ -18,11 +18,12 @@ func Start() {
 	serverVariables := environment.GetServerVariables()
 
 	router := mux.NewRouter()
-	dbClient := getDBClient()
+	dbType := libConstants.SQLServer
+	dbClient := environment.GetDBClient(dbType)
 
 	//define handlers
 	ah := AuthHandler{
-		service: service.NewDefaultAuthService(domain.NewAuthRepositoryDB(dbClient), domain.GetRolePermissions()),
+		service: service.NewDefaultAuthService(GetDBRepositories(dbType, dbClient), domain.GetRolePermissions()),
 	}
 
 	// define routes
@@ -35,15 +36,15 @@ func Start() {
 
 }
 
-func getDBClient() *sqlx.DB {
-	dbVariables := environment.GetDBVariables()
+func GetDBRepositories(dbType libConstants.DBType, dbClient *sqlx.DB) domain.AuthRepository {
+	var authRepository domain.AuthRepository
 
-	client, err := sqlx.Open("mysql", dbVariables.GetDataSource())
-	if err != nil {
-		panic(err)
+	switch dbType {
+	case libConstants.MySQL:
+		authRepository = domain.NewAuthRepositoryDB(dbClient)
+	case libConstants.SQLServer:
+		authRepository = domain.NewAuthRepositorySQLServerDB(dbClient)
 	}
-	client.SetConnMaxLifetime(time.Minute * 3)
-	client.SetMaxOpenConns(10)
-	client.SetMaxIdleConns(10)
-	return client
+
+	return authRepository
 }

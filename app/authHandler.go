@@ -2,10 +2,11 @@ package app
 
 import (
 	"banking-auth/dto"
-	"banking-auth/logger"
 	"banking-auth/service"
 	"encoding/json"
 	"net/http"
+
+	"github.com/LzKelvinSoares/lzk-go-lib/logger"
 )
 
 type AuthHandler struct {

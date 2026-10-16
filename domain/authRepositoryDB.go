@@ -1,18 +1,12 @@
 package domain
 
 import (
-	"banking-auth/logger"
 	"database/sql"
 
 	"github.com/LzKelvinSoares/lzk-go-lib/errs"
+	"github.com/LzKelvinSoares/lzk-go-lib/logger"
 	"github.com/jmoiron/sqlx"
 )
-
-type AuthRepository interface {
-	FindBy(username, password string) (*Login, *errs.AppError)
-	GenerateAndSaveRefreshTokenToStore(authToken AuthToken) (string, *errs.AppError)
-	RefreshTokenExist(refreshToken string) *errs.AppError
-}
 
 type AuthRepositoryDB struct {
 	client *sqlx.DB

@@ -1,9 +1,8 @@
 package domain
 
 import (
-	"banking-auth/logger"
-
 	"github.com/LzKelvinSoares/lzk-go-lib/errs"
+	"github.com/LzKelvinSoares/lzk-go-lib/logger"
 	"github.com/golang-jwt/jwt/v5"
 )
 

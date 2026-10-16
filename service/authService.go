@@ -3,10 +3,10 @@ package service
 import (
 	"banking-auth/domain"
 	"banking-auth/dto"
-	"banking-auth/logger"
 	"fmt"
 
 	"github.com/LzKelvinSoares/lzk-go-lib/errs"
+	"github.com/LzKelvinSoares/lzk-go-lib/logger"
 	"github.com/golang-jwt/jwt/v5"
 )
 
