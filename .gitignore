@@ -1,4 +1,6 @@
 .env
 .env.local
+.env.mongo
+.env.sqlserver
 .env.prod
 az-env.ps1
