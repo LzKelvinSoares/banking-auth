@@ -19,7 +19,7 @@ func Start() {
 
 	router := mux.NewRouter()
 	dbType := libConstants.SQLServer
-	dbClient := environment.GetDBClient(dbType)
+	dbClient := environment.GetSQLClient(dbType)
 
 	//define handlers
 	ah := AuthHandler{
