@@ -11,7 +11,7 @@ type AuthToken struct {
 }
 
 func (a AuthToken) NewAccessToken() (string, *errs.AppError) {
-	signedTokenAsString, err := a.token.SignedString([]byte(HMAC_SAMPLE_SECRET))
+	signedTokenAsString, err := a.token.SignedString([]byte(GetHMACSecret()))
 	if err != nil {
 		logger.Error("Failed while signing token: " + err.Error())
 		return "", errs.NewUnexpectedError("cannot generate token")
@@ -24,7 +24,7 @@ func (a AuthToken) NewRefreshToken() (string, *errs.AppError) {
 	c := a.token.Claims.(AccessTokenClaims)
 	refreshClaims := c.RefreshTokenClaims()
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, refreshClaims)
-	signedString, err := token.SignedString([]byte(HMAC_SAMPLE_SECRET))
+	signedString, err := token.SignedString([]byte(GetHMACSecret()))
 	if err != nil {
 		logger.Error("Failed while refresh token: " + err.Error())
 		return "", errs.NewUnexpectedError("cannot generate refresh token")
@@ -42,7 +42,7 @@ func NewAuthToken(claims AccessTokenClaims) AuthToken {
 
 func NewAccessTokenFromRefreshToken(refreshToken string) (string, *errs.AppError) {
 	token, err := jwt.ParseWithClaims(refreshToken, &RefreshTokenClaims{}, func(t *jwt.Token) (interface{}, error) {
-		return []byte(HMAC_SAMPLE_SECRET), nil
+		return []byte(GetHMACSecret()), nil
 	})
 	if err != nil {
 		return "", errs.NewAuthenticationError("Invalid or Expired Refresh Token")

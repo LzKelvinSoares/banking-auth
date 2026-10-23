@@ -14,7 +14,7 @@ type RefreshTokenRequest struct {
 
 func (r RefreshTokenRequest) AccessTokenValid() error {
 	_, err := jwt.Parse(r.AccessToken, func(t *jwt.Token) (interface{}, error) {
-		return []byte(domain.HMAC_SAMPLE_SECRET), nil
+		return []byte(domain.GetHMACSecret()), nil
 	})
 
 	if err != nil {

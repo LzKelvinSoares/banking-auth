@@ -2,11 +2,11 @@ package domain
 
 import (
 	"database/sql"
+	"log"
+	"os"
 	"strings"
 	"time"
 )
-
-const HMAC_SAMPLE_SECRET = "hmacSampleSecret"
 
 type Login struct {
 	Username   string         `db:"username"`
@@ -40,4 +40,12 @@ func (l Login) ClaimsForAdmin() AccessTokenClaims {
 		Username: l.Username,
 		Expiry:   time.Now().Add(ACCESS_TOKEN_DURATION).Unix(),
 	}
+}
+
+func GetHMACSecret() string {
+	secret := os.Getenv("HMAC_SECRET")
+	if len(secret) < 32 {
+		log.Fatal("Missing HMAC_SECRET")
+	}
+	return secret
 }

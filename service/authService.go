@@ -110,7 +110,7 @@ func (a DefaultAuthService) Refresh(request dto.RefreshTokenRequest) (*dto.Login
 
 func jwtTokenFromString(tokenString string) (*jwt.Token, *errs.AppError) {
 	token, err := jwt.ParseWithClaims(tokenString, &domain.AccessTokenClaims{}, func(token *jwt.Token) (interface{}, error) {
-		return []byte(domain.HMAC_SAMPLE_SECRET), nil
+		return []byte(domain.GetHMACSecret()), nil
 	})
 
 	if err != nil {

@@ -1,35 +1,66 @@
 # Banking Auth
 
-A Go authentication service for a banking application. It issues JWT access tokens, validates token claims for protected routes, and supports refresh-token flows for session renewal.
+A Go HTTP service that authenticates banking users and issues JWT access and refresh tokens. It also verifies access tokens and checks whether a token's role may access a requested route.
 
-## Overview
+## Requirements
 
-This project exposes a small REST API for authentication and authorization. It is designed to work with the banking sample API and validates user credentials against a backing database before generating signed tokens.
+- Go 1.27.1 or later
+- SQL Server
+- A database containing the authentication tables described below
 
-Key capabilities:
+The service currently configures the SQL Server repository at startup. Although the shared database library supports other database types, this application does not select them.
 
-- User login with username/password
-- Access token generation and validation
-- Refresh token generation and renewal
-- Role-based authorization checks
-- SQL Server or MySQL-compatible repository backends
-- Environment-based configuration
+## Configuration
 
-## Project Structure
+The service loads environment variables from `.env` in the working directory, or from the process environment. Configure:
 
-- `app/` — HTTP handlers and server bootstrap
-- `constants/` — route constants
-- `domain/` — token claims, repositories, and auth domain logic
-- `dto/` — request and response models
-- `service/` — business logic for login, verification, and refresh
-- `main.go` — application entry point
+| Variable | Description |
+| --- | --- |
+| `SERVER_ADDRESS` | Address to bind the HTTP server to |
+| `SERVER_PORT` | HTTP server port |
+| `DB_USER` | SQL Server username |
+| `DB_PASSWORD` | SQL Server password |
+| `DB_ADDRESS` | SQL Server hostname |
+| `DB_PORT` | SQL Server port (commonly `1433`) |
+| `DB_NAME` | Database name |
+| `HMAC_SECRET` | Secret used to sign and validate tokens; must contain at least 32 bytes |
 
-## API Endpoints
+For local development, create a `.env` file with these variables. Keep real credentials and signing secrets out of source control. When running in a container, set `SERVER_ADDRESS=0.0.0.0` and use the same `SERVER_PORT` that you publish.
 
-### POST `/auth/login`
-Authenticates a user and returns a pair of tokens.
+The database must provide:
 
-Request body:
+- `users` with `username`, `password`, `customer_id`, and `role` columns
+- `accounts` with `customer_id` and `account_id` columns
+- `refresh_token_store` with a `refresh_token` column
+
+The login query uses these tables to load a user's role and account identifiers. Refresh tokens are registered in `refresh_token_store`.
+
+## Run
+
+```sh
+go mod download
+go run .
+```
+
+The server listens at `SERVER_ADDRESS:SERVER_PORT`.
+
+To build the Docker image:
+
+```sh
+docker build -f dockerfile -t banking-auth .
+```
+
+Provide the configuration variables to the container at runtime and publish its configured port.
+
+## API
+
+All request and response bodies use JSON.
+
+### `POST /auth/login`
+
+Authenticates a user and returns an access token and a registered refresh token.
+
+Request:
 
 ```json
 {
@@ -42,72 +73,65 @@ Response:
 
 ```json
 {
-  "accessToken": "<jwt>",
-  "refreshToken": "<jwt>"
+  "access_token": "<jwt>",
+  "refresh_token": "<jwt>"
 }
 ```
 
-### GET `/auth/verify`
-Validates a provided JWT against the configured secret and checks whether the user is authorized for the requested route.
+Access tokens expire after one hour. Refresh tokens expire after 30 days.
 
-Query parameters commonly include:
+### `GET /auth/verify`
 
-- `token` — JWT to validate
-- `routeName` — route being accessed
-- `customer_id` — expected customer identifier for user-scoped requests
-- `account_id` — optional account identifier verification
+Verifies the access token and checks its role against the requested route. Supply these query parameters:
 
-### POST `/auth/refresh`
-Refreshes an access token using a valid refresh token.
+| Parameter | Description |
+| --- | --- |
+| `token` | Access token to verify |
+| `routeName` | Protected route name, such as `GetCustomer` or `MakeTransaction` |
+| `customer_id` | Customer identifier; checked against the token for user-role tokens |
+| `account_id` | Optional account identifier; if supplied for a user-role token, it must belong to that token |
 
-Request body:
+Configured route permissions:
+
+| Role | Allowed route names |
+| --- | --- |
+| `admin` | `GetAllCustomers`, `GetCustomer`, `NewAccount`, `MakeTransaction` |
+| `user` | `GetCustomer`, `MakeTransaction` |
+
+Successful response:
 
 ```json
 {
-  "accessToken": "<jwt>",
-  "refreshToken": "<jwt>"
+  "isAuthorized": true
 }
 ```
 
-## Configuration
+### `POST /auth/refresh`
 
-The application reads configuration from environment variables. A sample `.env` file is included:
+Validates the supplied access token and registered refresh token, then returns a new access token.
 
-```env
-SERVER_ADDRESS="localhost"
-SERVER_PORT="8081"
+Request:
 
-DB_USER="banking-master"
-DB_PASSWORD="your-password"
-DB_ADDRESS="your-db-host"
-DB_PORT="1433"
-DB_NAME="banking"
+```json
+{
+  "access_token": "<current-access-jwt>",
+  "refresh_token": "<registered-refresh-jwt>"
+}
 ```
 
-These values are used to bind the HTTP server and connect to the configured database.
+Response:
 
-## Running the Service
-
-1. Install dependencies:
-
-```bash
-go mod download
+```json
+{
+  "access_token": "<new-access-jwt>"
+}
 ```
 
-2. Start the service:
+## Project structure
 
-```bash
-go run .
-```
-
-3. The service will listen on the configured address and port, defaulting to `http://localhost:8081`.
-
-## Notes
-
-- The application uses JWT signing with the secret defined in the domain layer.
-- Authentication and authorization rules are enforced by service and repository layers.
-- The project is intended to be paired with a banking API that consumes the generated tokens.
-
-## License
-
-This project is provided as a sample codebase for educational and demonstration purposes.
+- `app/` — HTTP handlers and server setup
+- `constants/` — API route paths
+- `domain/` — token claims, repository interfaces, and database repositories
+- `dto/` — API request and response models
+- `service/` — authentication, token verification, and refresh logic
+- `main.go` — application entry point
